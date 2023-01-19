@@ -1,0 +1,12 @@
+Do we have all the queries for all the tasks we need?
+
+
+register a new user: register query
+login a user: login query
+add product to cart: addToCart query
+
+
+remove product from cart: removeFromCart query
+checkout: checkout query
+reset cart: reset query
+
