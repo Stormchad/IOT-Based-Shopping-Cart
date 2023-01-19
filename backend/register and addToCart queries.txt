@@ -1,0 +1,12 @@
+register query
+
+mutation{
+  register(username:"new User", email:"ammar@gmail.com", password:"123", displayName:"AI")
+}
+
+add to cart query: 
+
+mutation{
+  addToCart(email:"ammar@gmail.com",productName:"prod1", productPrice:123,productCode:"PC")
+}
+
