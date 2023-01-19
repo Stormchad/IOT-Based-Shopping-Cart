@@ -1,0 +1,29 @@
+---------------------------------------------------------------------
+page 1:
+
+we will see 2 sections
+
+users connected to cart. (if user clicks on one of these, move to page 3)
+users not connected to cart(if user clicks on one of these, move to page 2).
+
+---------------------------------------------------------------------
+
+page 2:
+
+
+we will check if the connection is established with the cart.
+
+if -> the cartConnection field is set to true, then cart is connected to the user then move to page 3.
+
+else -> connection needs to be set up from the device side in cart.
+
+
+---------------------------------------------------------------------
+
+page 3:
+
+
+In this page we will see all the products that have been scanned by the barcode. and a checkout button, which will return the total bill.
+
+
+---------------------------------------------------------------------
