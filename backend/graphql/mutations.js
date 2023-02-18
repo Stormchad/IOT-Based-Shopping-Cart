@@ -397,7 +397,7 @@ const removeCartConnection = {
       await User.findOneAndUpdate({ username }, {$set: {cartConnection:false}})
       await Cart.findOneAndUpdate({ cartNumber },{$set: {userConnection:false}})
       await Cart.findOneAndUpdate({ cartNumber },{$set: {username:null}})
-      return "Connection removed."
+      return "Connection removed!"
     }
 
   }
