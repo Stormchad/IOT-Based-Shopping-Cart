@@ -56,6 +56,4 @@ const CartType = new GraphQLObjectType({
 })
 
 
-
-
 module.exports = { UserType, ProductType, InventoryType, CartType }

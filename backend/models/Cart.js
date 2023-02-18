@@ -14,6 +14,9 @@ const cartSchema = new mongoose.Schema({
     userConnection:Boolean,
     totalBill:{
         type: Number
+    },
+    checkoutComplete:{
+        type: Boolean
     }
 
 },

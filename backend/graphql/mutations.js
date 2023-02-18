@@ -1,6 +1,6 @@
 const {UserType, ProductType, CartType, InventoryType } = require("./types")
 const { User, Product, Cart, Inventory } = require("../models")
-const { GraphQLString, GraphQLInt, GraphQLID, GraphQLBoolean } = require("graphql")
+const { GraphQLString, GraphQLInt, GraphQLID, GraphQLBoolean, GraphQLObjectType, GraphQLScalarType, GraphQLNonNull, GraphQLList } = require("graphql")
 const { createJwtToken } = require("../util/auth")
 
 const generateSpecialCode = () =>{
@@ -173,11 +173,8 @@ const addProduct = {
          products: product
        }
      })
-     return "added to cart!!!"
+      return `${product.productName} added to cart!!!`
      }
-
-     
-      
     
    }
  }
@@ -235,7 +232,7 @@ const removeFromCart = {
   }
 }
 
-const checkout = {
+const getTotalBill = {
   type:GraphQLString,
   description: "This will return the sum of all the prices of products in the cart",
   args:{
@@ -262,6 +259,47 @@ const checkout = {
   }
 }
 
+const payment = {
+  type: GraphQLString,
+  description: "This will return the sum of all the prices of products in the cart",
+  args:{
+    cartNumber: {type:GraphQLInt},
+    amount: {type:GraphQLInt}
+  },
+  async resolve(parent,args){
+
+    var total = 0;
+
+    const { cartNumber, amount } = args
+
+    const cartFound = await Cart.findOne({cartNumber})
+
+    if(!cartFound)
+    {
+      return "cart not found"
+    }
+
+    if(cartFound.checkoutComplete == "true")
+    {
+      return "already checked out!!!"
+    }
+
+    if (cartFound.totalBill == amount)
+    {
+        await Cart.findOneAndUpdate({cartNumber},{$set:{checkoutComplete: true}})
+        await Cart.findOneAndUpdate({cartNumber},{$set:{totalBill: 0}})
+        return "checkout complete!"
+    }
+    else
+    {
+      return `expected amount ${cartFound.totalBill} please try again...`
+    }
+
+  }
+}
+
+
+
 
 const resetCart = {
   type: GraphQLString,
@@ -276,21 +314,14 @@ const resetCart = {
 
     const cart = await Cart.findOne({cartNumber})
 
-    if(!user)
+    if(!cart)
     {
       throw new Error("cannot find cart")
     }
     else
     {
-      const cartFound = await Cart.findOneAndUpdate({cartNumber},{ $set: {products:[]}})
-      if(!userFound)
-      {
-        throw new Error("some error occurred")
-      }
-      else
-      {
-        return "all items removed from cart" 
-      }
+      const cartFound = await Cart.findOneAndUpdate({cartNumber},{ $set: {products:[], totalBill:0, checkoutComplete: false}})
+      return "Cart is now reset!!!"
        
     }
     
@@ -304,7 +335,7 @@ const connectToCart = {
   args:{
     username: {type: GraphQLString},
     specialCode: {type:GraphQLString},
-    cartNumber: {type: GraphQLString}
+    cartNumber: {type: GraphQLInt}
   },
   async resolve(parent,args){
 
@@ -356,61 +387,47 @@ const removeCartConnection = {
   async resolve(parent,args)
   {
     const { cartNumber } = args
-    const cart = await Cart.findOneAndUpdate({ cartNumber },{$set: {userConnection:false}})
 
-    if(cart.userConnection == false)
+    const getCart = await Cart.findOne({ cartNumber })
+    let username = getCart.username
+    const getUser = await User.findOneAndUpdate({ username })
+
+    if(!getCart)
     {
-      return "already disconnected"
+      return "Cannot find cart."
     }
-
-    const username = cart.username
-    const user = await User.findOneAndUpdate({ username }, {$set: {cartConnection:false}})
-
-    if(user.cartConnection)
+    else if(!getUser)
     {
-      return "already disconnected"
-    }
-
-    if(!user)
-    {
-      throw new Error("user not found")
-    }
-    if(!cart)
-    {
-      throw new Error("cart not found")
+      return "User not found"
     }
     else
     {
-      return "Cart Removed!!!"
+      await User.findOneAndUpdate({ username }, {$set: {cartConnection:false}})
+      await Cart.findOneAndUpdate({ cartNumber },{$set: {userConnection:false}})
+      await Cart.findOneAndUpdate({ cartNumber },{$set: {username:null}})
+      return "Connection removed."
     }
+
   }
 
 }
 
-const checkCartConnection = {
+const checkCartConnection = (cartNumber) => {
 
-  type: GraphQLString,
-  description: "This checks the connetion of the cart and user",
-  args:{
-    cartNumber: {type: GraphQLInt}
-  },
-  async resolve(parent,args){
-
-    const { cartNumber } = args
-
-    const cart = await Cart.findOne({ cartNumber })
+    const cart = Cart.findOne({ cartNumber })
 
     if(cart.userConnection == true)
     {
-      return `user ${cart.username} is connected to cartNumber ${cart.cartNumber}`
+      return true
     }
     else
     {
-      return "User is not connected to cart"
+      return false
     }
 
   }
-}
+
+
 
 const updateInventory = {
   type:GraphQLString,
@@ -454,4 +471,4 @@ const updateInventory = {
 
 
 
-module.exports = {register, login, addProduct, addToCart, resetCart, connectToCart,checkout, removeFromCart,removeCartConnection, checkCartConnection, createNewCart , updateInventory}
+module.exports = { payment, register, login, addProduct, addToCart, resetCart, connectToCart,getTotalBill, removeFromCart,removeCartConnection, createNewCart , updateInventory}
