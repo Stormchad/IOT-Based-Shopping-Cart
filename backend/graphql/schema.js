@@ -4,7 +4,7 @@ const {GraphQLSchema, GraphQLObjectType} = require("graphql")
 const { users, products, inventories, carts } = require('./queries')
  
 // import mutations
-const { register, login, addProduct, addToCart, resetCart, connectToCart, checkout, removeFromCart, removeCartConnection, createNewCart, checkCartConnection, updateInventory } = require('./mutations')
+const { payment, register, login, addProduct, addToCart, resetCart, connectToCart, getTotalBill, removeFromCart, removeCartConnection, createNewCart, updateInventory } = require('./mutations')
 
 // define QueryType
 const QueryType = new GraphQLObjectType({
@@ -20,7 +20,7 @@ const Mutationtype = new GraphQLObjectType({
 
     name: "MutationType",
     description:"Mutations",
-    fields:{register, login, addProduct, createNewCart , addToCart, resetCart, connectToCart, checkout, removeFromCart, removeCartConnection, checkCartConnection,  updateInventory} 
+    fields:{ payment , register, login, addProduct, createNewCart , addToCart, resetCart, connectToCart, getTotalBill, removeFromCart, removeCartConnection, updateInventory} 
 
 })
 
