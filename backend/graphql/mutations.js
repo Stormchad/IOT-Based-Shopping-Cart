@@ -9,12 +9,6 @@ const generateSpecialCode = () =>{
 
 }
 
-
-const createCart = (nc) =>{
-  
-}
-
-
 const createNewCart = {
   type: GraphQLString,
   description:"This is used to create a new Cart",
@@ -58,7 +52,6 @@ const register = {
     var usernameToFind = username
     var emailToFind = email
     var spc = await generateSpecialCode()
-    console.log(spc)
     
     var user = await User.findOne({username: usernameToFind, email: emailToFind })
     if(!user)
@@ -100,7 +93,6 @@ const login = {
     }
 
     const token = createJwtToken(user)
-    return token
 
   }
 
