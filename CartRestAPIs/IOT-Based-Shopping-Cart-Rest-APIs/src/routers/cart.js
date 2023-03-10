@@ -3,7 +3,7 @@ const User = require('../models/user')
 const Cart = require('../models/cart')
 const Inventory = require('../models/Inventory')
 const Product = require('../models/Product')
-const auth = require('../middleware/auth')
+const auth = require('../middleware/verifyToken')
 const router = new express.Router()
 
 
@@ -28,7 +28,7 @@ calculateTotalBill = (cartNumber) => {
 }
 
 
-router.post('/cart/create', async (req, res) => {
+router.post('/admin/cart/create', async (req, res) => {
 
     let cartNumber = req.body.cartNumber
     const cart = await Cart.findOne({cartNumber})
@@ -99,6 +99,7 @@ router.get('/cart/',async(req,res)=>{
         res.status(400).send({message: "Error occured", e})
     }
 })
+
 
 //get cart by cartId
 router.get('/cart/:id', async (req,res)=>{
@@ -253,7 +254,7 @@ router.post('/cart/removeFromCart/:cartNumber', async (req,res) => {
 })
 
 //reset cart
-router.post('/cart/reset/:cartNumber', async (req,res)=>{
+router.post('/admin/cart/reset/:cartNumber', async (req,res)=>{
 
     cartNumber = req.params.cartNumber
 
@@ -278,7 +279,9 @@ router.post('/cart/reset/:cartNumber', async (req,res)=>{
 
 })
 
-router.delete('/cart/:id', async(req,res)=>{
+
+//delete cart by cartId
+router.delete('/admin/cart/:id', async(req,res)=>{
 
     _id = req.params.id
     if(_id == null)
@@ -293,7 +296,9 @@ router.delete('/cart/:id', async(req,res)=>{
 
 })
 
-router.delete('/cart/', async(req,res)=>{
+
+//delete cart by cart number
+router.delete('/admin/cart/', async(req,res)=>{
 
     cartNumber = req.body.cartNumber
     if(cartNumber == null)
@@ -304,6 +309,22 @@ router.delete('/cart/', async(req,res)=>{
     {
         const cart = await Cart.findOneAndDelete({cartNumber})
         res.status(200).send({message:"SUCCESS",cart})
+    }
+
+})
+
+router.get('/carts/connection', async(req,res)=>{
+
+    userConnection=req.body.userConnection
+
+    if(userConnection == true || userConnection == false)
+    {
+        const carts = await Cart.find({userConnection})
+        res.status(200).send({carts})
+    }
+    else
+    {
+        res.status(500).send({message:"Incorrect input"})
     }
 
 })

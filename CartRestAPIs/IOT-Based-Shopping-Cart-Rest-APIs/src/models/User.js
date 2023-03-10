@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema({
     cartConnection:Boolean,
     totalBill:{
         type: Number
+    },
+    adminPrevilages:{
+        type:Boolean
+    },
+    token:{
+        type:String
     }
 
 },

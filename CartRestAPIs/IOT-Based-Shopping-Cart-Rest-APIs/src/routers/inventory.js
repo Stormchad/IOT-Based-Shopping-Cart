@@ -3,12 +3,12 @@ const User = require('../models/user')
 const Cart = require('../models/cart')
 const Inventory = require('../models/Inventory')
 const Product = require('../models/Product')
-const auth = require('../middleware/auth')
+const auth = require('../middleware/verifyToken')
 const router = new express.Router()
 
 
 //update inventory for a product
-router.post('/inventory/', async (req, res) => {
+router.post('/admin/inventory/', async (req, res) => {
 
     const productCode = req.body.productCode
     const q = req.body.quantity
@@ -54,7 +54,7 @@ router.post('/inventory/', async (req, res) => {
 })
 
 //get inventory by productCode
-router.get('/inventory/', async ( req, res ) => {
+router.get('/admin/inventory/', async ( req, res ) => {
     
     productCode = req.body.productCode
 
@@ -78,7 +78,7 @@ router.get('/inventory/', async ( req, res ) => {
     }
 })
 
-router.get('/inventory/all', async (req , res) => {
+router.get('/admin/inventory/all', async (req , res) => {
 
     try
     {
