@@ -3,12 +3,12 @@ const User = require('../models/user')
 const Cart = require('../models/cart')
 const Inventory = require('../models/Inventory')
 const Product = require('../models/Product')
-const auth = require('../middleware/auth')
+const auth = require('../middleware/verifyToken')
 const router = new express.Router()
 
 
 //create new product
-router.post('/product/create', async (req,res) =>{
+router.post('/admin/product/create', async (req,res) =>{
 
     productCode = req.body.productCode
     productName = req.body.productName
@@ -103,7 +103,7 @@ router.get('/product/', async ( req , res ) => {
 
 })
 
-router.delete('/product/:id', async ( req , res ) => {
+router.delete('/admin/product/:id', async ( req , res ) => {
 
     _id  = req.params.id
 

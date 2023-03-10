@@ -1,18 +1,155 @@
-  const express = require('express')
+const express = require('express')
 const User = require('../models/user')
 const Cart = require('../models/cart')
-const auth = require('../middleware/auth')
+const verifyToken = require('../middleware/verifyToken')
+const jwt = require('jsonwebtoken')
 const router = new express.Router()
+const dotenv = require('dotenv');
+dotenv.config()
+
 
 const generateSpecialCode = () =>{
 
     return Math.random().toString(36).slice(2, 7);
   
 }
+
+const isAdmin = (token) =>{
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY)
+
+    const adminPrevilages = decoded.user.adminPrevilages
+
+    if(adminPrevilages == true)
+    {
+        return true
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+
+//admin login
+router.post('/admin/login', async (req, res) =>{
+
+    username = req.body.username
+    password = req.body.password
+
+    if(username == null || password == null || username == "" || password == "" || username == " " || password == " ")
+    {
+        res.status(400).send({message:"Please enter username or password"})
+    }
+    else
+    {
+        try
+        {
+            const user = await User.findOne({ username , password, adminPrevilages:true })
+            if(!user)
+            {
+                res.status(404).send({message:"User not found/ User not an admin"})
+            }
+            // res.send({ user })
+             else
+             {
+                    const token = jwt.sign({ user }, process.env.SECRET_KEY, { expiresIn:'300s' })
+                    await User.findOneAndUpdate({ username , password },{ $set: { token } })
+                    res.status(200).send({ token })
+             }
+            
+        }
+        catch(e)
+        {
+            res.status(500).send({message:"Some error occurred"})
+        }
+    }
+
+
+})
+
+//user login
+router.post('/user/login',async( req, res) => {
+    
+
+    let username = req.body.username
+    let password = req.body.password
+
+
+    if(username == null || password == null || username == "" || password == "" || username == " " || password == " ")
+    {
+        res.status(400).send({message:"Please enter username or password"})
+    }
+    else
+    {
+        try
+        {
+            const user = await User.findOne({ username , password })
+            if(!user)
+            {
+                res.status(404).send({message:"User not found"})
+            }
+            // res.send({ user })
+             else
+             {
+                    const token = jwt.sign({ user }, process.env.SECRET_KEY, { expiresIn:'300s' })
+                    await User.findOneAndUpdate({ username,password },{ $set: {token} })
+                    res.status(200).send({ token })
+             }
+            
+        }
+        catch(e)
+        {
+            res.status(500).send({message:"Some error occurred"})
+        }
+    }
+
+})
   
 
 //create new user
-router.post('/user/create', async (req, res) => {
+router.post('/user/create', verifyToken, async (req, res) => {
+
+    const token = req.header('Authorization').replace('bearer ', '')
+
+    if(isAdmin(token) == false)
+    {
+        res.status(500).send({message: "This is an admin operation"})
+    }
+    else
+    {
+        let username = req.body.username
+        let email = req.body.email
+        let password = req.body.password
+        let displayName = req.body.displayName
+        
+        try{
+    
+        var spc = generateSpecialCode()
+    
+        var user = await User.findOne({ username: username , email: email })
+        if(!user)
+        {
+            const user1 = new User({ username,specialCode: spc , email, password, displayName, adminPrevilages:false })
+            await user1.save()
+            res.status(200).send({message: "SUCCESS", user1 })
+        }
+        else{
+            res.status(400).send({ message: "user already exists" })
+        }
+        }
+        catch(e)
+        {
+            res.status(400).send({ message: "Some error occured", e})
+        }
+    }
+
+    
+})
+
+//create new admin
+router.post('/admin/create', async (req, res) => {
 
     let username = req.body.username
     let email = req.body.email
@@ -26,7 +163,7 @@ router.post('/user/create', async (req, res) => {
     var user = await User.findOne({ username: username , email: email })
     if(!user)
     {
-        const user1 = new User({ username,specialCode: spc , email, password, displayName })
+        const user1 = new User({ username,specialCode: spc , email, password, displayName, adminPrevilages:true })
         await user1.save()
         res.status(200).send({message: "SUCCESS", user1 })
     }
@@ -43,9 +180,10 @@ router.post('/user/create', async (req, res) => {
 
 
 //get all users
-router.get('/users/', async (req, res) => {
-    const list = await User.find()
-    res.status(200).send(list)
+router.get('/users/', verifyToken , async (req, res) => {
+            const list = await User.find()
+            res.status(200).send({list})
+    
 })
 
 
@@ -193,7 +331,7 @@ router.post('/disconnect/user/:id',async (req,res) => {
 
 
 //delete user
-router.delete('/user/:id',async (req,res) => {
+router.delete('/user/:id', verifyToken ,async (req,res) => {
     
 
     try
